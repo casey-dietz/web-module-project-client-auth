@@ -1,13 +1,35 @@
 import React, {useState} from 'react'
+import { useHistory } from 'react-router'
+import {axiosWithAuth} from '../utils/axiosWithAuth'
 
 const Login = () => {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
+    const [formState, setFormState] = useState({
+        username: '',
+        password: '',
+        error: '',
+    })
+    const history = useHistory()
+    
+    const handleLogin = e => {
+        e.preventDefault()
+        axiosWithAuth()
+            .post("/api/login", formState)
+            .then(res => {
+                console.log(res)
+                localStorage.setItem('token', res.data.payload)
+                history.push('./protected')
+            })
+            .catch(err => {
+                console.log(err.response)
+                setFormState({
+                    error: err.response.data.error
+                })
+            })
+    }
 
-    handleChange = e => {
-        setUsername({
-            ...username,
+    const handleChange = e => {
+        setFormState({
+            ...formState, 
             [e.target.name]: e.target.value
         })
     }
@@ -18,18 +40,18 @@ const Login = () => {
                 <input 
                     type='text'
                     name='username'
-                    value={username}
+                    value={formState.username}
                     onChange={handleChange}
                 />
                 <input 
                     type='password'
                     name='password'
-                    value={password}
+                    value={formState.password}
                     onChange={handleChange}
                 />
                 <button>Log in</button>
             </form>
-            <p style={{ color: 'red' }}>{error}</p>
+            <p style={{ color: 'red' }}>{formState.error}</p>
         </div>
     )
 }
